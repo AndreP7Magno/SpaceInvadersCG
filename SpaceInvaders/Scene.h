@@ -12,7 +12,9 @@ class Scene
 
 
 public:
-	Scene(int argc, char **argv, string title, int width = 600, int height = 600);
+	Scene(int argc, char **argv, string title, int width, int height);
+	void Inicio();
+	static void DesenhaCena(void);
 	~Scene();
 
 };
