@@ -1,153 +1,46 @@
 #include "Scene.h"
-#include "Bullet.h"
-#include "Alien.h"
-#include "Ponto.h"
-#include <stdio.h>
 
-Scene::Scene(int argc, char **argv, string title, int width, int height)
+struct Bullet
 {
-	Scene::SetTipoTela(Scene::TipoTela::Inicial); //TENTAR MUDAR O LUGAR DISSO
+	bool foiAtirada;
+	bool atingiu;
+	float translacaoY;
+	float posicaoX;
+};
 
-	glutInit(&argc, argv);
-	// Indica que deve ser usado um unico buffer para armazenamento da imagem e representacao de cores RGB
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-	glutInitWindowSize(width, height);
-	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - width) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - height) / 2);
-	// Cria uma janela com o titulo especificado
-	glutCreateWindow(title.c_str());
+struct Alien
+{
+	bool atingido;
+	bool desenhado;
+	float posicaoX;
+	float posicaoY;
+};
 
-	Inicio();
-	//glutSpecialFunc(spteclas);
-	//glutKeyboardFunc(teclas);
-	glutDisplayFunc(DesenhaCena);
+struct Ponto
+{
+	bool pontoX;
+	bool pontoY;
+};
 
-	//glutTimerFunc(50, Anima, 1);
+static float translacaoNaveX;
 
-	// Dispara a maquina de estados da OpenGL
-	glutMainLoop();
-}
+static float contadorPontuacao;
 
+Bullet bullet[2];
+Alien alien[20];
+Ponto ponto;
 
-void Scene::Inicio() {
+int at;
+float atingidos;
 
-	//Valores iniciais para Aliens
-	for (int aux = 0; aux < 20; aux++)
-	{
-		alien[aux].atingido = alien[aux].desenhado = false;
-		alien[aux].posicaoX = -1.5;
-		alien[aux].posicaoY = 2.0;
-	}
+bool direita = true;
+bool desce = false;
 
-	//Valores iniciais para Balas
-	for (int aux = 0; aux < 2; aux++) {
-		bullet[aux].posicaoX = bullet[aux].translacaoY = 0.0;
-		bullet[aux].foiAtirada = false;
-	}
-
-	//CONTINUAR A LÓGICA DE INICIO DEPOIS
-}
-
-void Scene::DesenhaCena(void) {
-	direita = true;
-	desce = false;
-	Scene::TipoTela telaAtual = Scene::GetTipoTela();
-
-	// Limpa a janela com a cor especificada como cor de fundo
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	//xmin, xmax, ymin, ymax
-	//gluOrtho2D(-2, 2, -1.2, 2.8);
-
-	if (telaAtual == Scene::TipoTela::Inicial) {
-		glClearColor(0.0, 0.0, 0.0, 0.0);
-		DesenhaNave();
-		EscreveTelaInicial();
-		PontoColisao(ponto);
-
-		//Desenha Aliens
-		for (int i = 0; i < 20; i++)
-		{
-			if (!alien[i].atingido)
-				DesenhaAlien(alien[i]);
-		}
-
-		//Movimento do Alien em X
-		for (int i = 0; i < 20; i++)
-		{
-			if (direita)
-				alien[i].posicaoX += 0.1;
-			else
-				alien[i].posicaoX -= 0.1;
-		}
-
-		if (direita) {
-			ponto.pontoX += 0.1;
-			ponto.pontoY += 0.1;
-		}
-		else
-		{
-			ponto.pontoX -= 0.1;
-			ponto.pontoY -= 0.1;
-		}
-
-		//Movimento do Y do Alien
-		if (desce) {
-			for (int i = 0; i < 20; i++)
-			{
-				alien[i].posicaoY -= 0.1;
-			}
-			desce = false;
-		}
-
-		//Movimento da bala
-		for (int i = 0; i < 2; i++)
-		{
-			if (bullet[i].foiAtirada)
-			{
-				if (bullet[i].translacaoY >= 3.5) {
-					bullet[i].foiAtirada = false;
-					bullet[i].translacaoY = 0.0;
-				}
-				else
-				{
-					Desbala(bullet[i]);
-					bullet[i].translacaoY += 0.1;
-				}
-			}
-		}
-
-		if (at == 1)
-		{
-			Scene::SetTipoTela(Scene::TipoTela::Perdedor);
-			telaAtual = Scene::GetTipoTela();
-		}
-
-		if (Atingidos == 20) {
-			Scene::SetTipoTela(Scene::TipoTela::Ganhador);
-			telaAtual = Scene::GetTipoTela();
-		}
-	}
-
-	telaAtual = Scene::GetTipoTela();
-	if (telaAtual == Scene::TipoTela::Ganhador) {
-
-	}
-
-	telaAtual = Scene::GetTipoTela();
-	if (telaAtual == Scene::TipoTela::Perdedor) {
-
-	}
-
-	glPopMatrix();
-	glutSwapBuffers();
-}
+int telaAtual = 1;
 
 #pragma region Desenhos e Textos
 
-void Scene::DesenhaNave() {
+void DesenhaNave() {
 	glColor3f(1.0, 1.0, 1.0);
 	glBegin(GL_QUADS);
 	glVertex2f(-0.1 + translacaoNaveX, -0.76);
@@ -180,7 +73,7 @@ void Scene::DesenhaNave() {
 	glEnd();
 }
 
-void Scene::EscreveTelaInicial() {
+void EscrevePontuacaoGeral() {
 	char texto[11] = "Pontuacao:";
 	char textoPontuacao[20];
 
@@ -353,7 +246,212 @@ void Desbala(Bullet bullet) {
 	glEnd();
 }
 
+void EscreveMenuAuxiliar() {
+	char texto[50] = "Aperte Z para Reiniciar ou X para Fechar";
+
+	glColor3ub(255, 255, 255);
+	glRasterPos3f(-2.0, -0.7, 0.0);
+
+	for (int aux = 0; aux <= strlen(texto); aux++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[aux]);
+}
+
+void EscrevePerdedor() {
+	char texto[11] = "PERDEU";
+
+	glColor3ub(254, 255, 255);
+	glRasterPos3f(-0.5, 1.0, 0.0);
+
+	for (int aux = 0; aux <= strlen(texto); aux++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[aux]);
+}
+
+void EscreveGanhou() {
+	char texto[8] = "GANHOU";
+
+	glColor3ub(255, 255, 255);
+	glRasterPos3f(-0.5, 1.0, 0.0);
+
+	for (int aux = 0; aux <= strlen(texto); aux++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[aux]);
+}
+
 #pragma endregion
+
+void Inicio() {
+	contadorPontuacao, atingidos = 0;
+	//Valores iniciais para Aliens
+	for (int aux = 0; aux < 20; aux++)
+	{
+		alien[aux].atingido = alien[aux].desenhado = false;
+		alien[aux].posicaoX = -1.5;
+		alien[aux].posicaoY = 2.0;
+	}
+
+	//Valores iniciais para Balas
+	for (int aux = 0; aux < 2; aux++) {
+		bullet[aux].posicaoX = bullet[aux].translacaoY = 0.0;
+		bullet[aux].foiAtirada = false;
+	}
+
+	//CONTINUAR A LÓGICA DE INICIO DEPOIS
+}
+
+void DesenhaCena() {
+
+	// Limpa a janela com a cor especificada como cor de fundo
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	//xmin, xmax, ymin, ymax
+	//gluOrtho2D(-2, 2, -1.2, 2.8);
+
+	if (telaAtual == 1) {
+		glClearColor(0.0, 0.0, 0.0, 0.0);
+		DesenhaNave();
+		EscrevePontuacaoGeral();
+		PontoColisao(ponto);
+
+		//Desenha Aliens
+		for (int i = 0; i < 20; i++)
+		{
+			if (!alien[i].atingido)
+				DesenhaAlien(alien[i]);
+		}
+
+		//Movimento do Alien em X
+		for (int i = 0; i < 20; i++)
+		{
+			if (direita)
+				alien[i].posicaoX += 0.1;
+			else
+				alien[i].posicaoX -= 0.1;
+		}
+
+		if (direita) {
+			ponto.pontoX += 0.1;
+			ponto.pontoY += 0.1;
+		}
+		else
+		{
+			ponto.pontoX -= 0.1;
+			ponto.pontoY -= 0.1;
+		}
+
+		//Movimento do Y do Alien
+		if (desce) {
+			for (int i = 0; i < 20; i++)
+			{
+				alien[i].posicaoY -= 0.1;
+			}
+			desce = false;
+		}
+
+		//Movimento da bala
+		for (int i = 0; i < 2; i++)
+		{
+			if (bullet[i].foiAtirada)
+			{
+				if (bullet[i].translacaoY >= 3.5) {
+					bullet[i].foiAtirada = false;
+					bullet[i].translacaoY = 0.0;
+				}
+				else
+				{
+					Desbala(bullet[i]);
+					bullet[i].translacaoY += 0.1;
+				}
+			}
+		}
+
+		if (at == 1)
+			telaAtual = 2;
+
+		if (atingidos == 20)
+			telaAtual = 3;
+	}
+
+	if (telaAtual == 2) {
+		EscrevePontuacaoGeral();
+		EscrevePerdedor();
+		EscreveMenuAuxiliar();
+	}
+
+	if (telaAtual == 3) {
+		EscrevePontuacaoGeral();
+		EscreveGanhou();
+		EscreveMenuAuxiliar();
+	}
+
+	glPopMatrix();
+	glutSwapBuffers();
+}
+
+void Teclas(unsigned char tecla, int x, int y) {
+
+	if (telaAtual == 2 || telaAtual == 3) {
+		if (tecla == 90) { //Se apertar Z
+			Inicio();
+			telaAtual = 1;
+			at = 0;
+			contadorPontuacao = 0;
+		}
+		if (tecla == 120 || tecla == 88) { //Se apertar X
+			exit(0);
+		}
+	}
+
+	//Verifica os tiros
+	if (tecla == 32) {
+		for (x = 0; x < 2; x++) {
+			if (bullet[x].foiAtirada == false) {
+				bullet[x].foiAtirada = true;
+				bullet[x].translacaoY = translacaoNaveX;
+				break;
+			}
+
+		}
+	}
+	  
+	glutPostRedisplay();
+}
+
+void TeclasDirecionais(int tecla, int x, int y) {
+	if (tecla == GLUT_KEY_RIGHT)
+		translacaoNaveX += 0.1;
+
+	if (tecla == GLUT_KEY_LEFT)
+		translacaoNaveX -= 0.1;
+
+	glutPostRedisplay();
+}
+
+void Anima(int valor) {
+
+}
+
+Scene::Scene(int argc, char **argv, string title, int width, int height)
+{
+	glutInit(&argc, argv);
+	// Indica que deve ser usado um unico buffer para armazenamento da imagem e representacao de cores RGB
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+	glutInitWindowSize(width, height);
+	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - width) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - height) / 2);
+	// Cria uma janela com o titulo especificado
+	glutCreateWindow(title.c_str());
+
+	Inicio();
+	glutSpecialFunc(TeclasDirecionais);
+	glutKeyboardFunc(Teclas);
+	glutDisplayFunc(DesenhaCena);
+
+	glutTimerFunc(50, Anima, 1);
+
+	// Dispara a maquina de estados da OpenGL
+	glutMainLoop();
+}
 
 Scene::~Scene()
 {
