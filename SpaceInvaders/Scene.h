@@ -3,7 +3,6 @@
 #include "GL\freeglut.h"
 #include <vector>
 using namespace std;
-using std::string;
 
 class Scene
 {
@@ -12,6 +11,16 @@ class Scene
 	string title;
 
 public:
+	
+	static float translacaoNaveX;
+	static float contadorPontuacao;
+	static Ponto ponto;
+	static vector<Alien> alien;
+	static vector<Bullet> bullet;
+	static bool direita;
+	static bool desce;
+	static int at;
+	static float Atingidos;
 
 	enum TipoTela
 	{
@@ -35,6 +44,8 @@ public:
 	Scene(int argc, char **argv, string title, int width, int height);
 	void Inicio();
 	static void DesenhaCena(void);
+	static void DesenhaNave();
+	static void EscreveTelaInicial();
 	~Scene();
 
 private:
