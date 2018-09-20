@@ -22,9 +22,11 @@ struct Ponto
 	bool pontoY;
 };
 
-static float translacaoNaveX;
+float translacaoNaveX;
+float translacaoX;
+float translacaoY;
 
-static float contadorPontuacao;
+float contadorPontuacao;
 
 Bullet bullet[2];
 Alien alien[20];
@@ -294,7 +296,34 @@ void Inicio() {
 		bullet[aux].foiAtirada = false;
 	}
 
-	//CONTINUAR A LÓGICA DE INICIO DEPOIS
+	translacaoX = alien[0].posicaoX;
+	float aux = translacaoX;
+	translacaoY = alien[0].posicaoY;
+	translacaoNaveX = 0.0;
+
+	//Manipula o x e y iniciais dos aliens
+	for (int i = 0; i < 20; i++)
+	{
+		if (translacaoX >= 1) {
+			translacaoX = aux;
+			translacaoY += -0.5;
+			alien[i].atingido = false;
+		}
+
+		if (!alien[i].atingido) {
+			if (i == 0) {
+				translacaoX = alien[i].posicaoX;
+				translacaoY = alien[i].posicaoY;
+			}
+			else {
+				alien[i].posicaoX = translacaoX;
+				alien[i].posicaoY = translacaoY;
+			}
+			translacaoX += 0.5;
+		}
+	}
+	ponto.pontoX = alien[0].posicaoX;
+	ponto.pontoY = alien[4].posicaoX;
 }
 
 void DesenhaCena() {
@@ -429,7 +458,40 @@ void TeclasDirecionais(int tecla, int x, int y) {
 }
 
 void Anima(int valor) {
+	if (ponto.pontoY >= 2.0) {
+		direita = false;
+		desce = true;
+	}
+	else if (ponto.pontoX <= -1.54) {
+		direita = true;
+		desce = true;
+	}
 
+	//Colisão alien com bala
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < 20; j++)
+		{
+			if (-0.66 >= 0.38 + alien[j].posicaoY && 0.66 <= 0.7 + alien[j].posicaoY)
+				at = 1;
+
+			if (-0.66 + bullet[i].translacaoY >= 0.38 + alien[j].posicaoY && -0.66 + bullet[i].translacaoY <= 0.7 + alien[j].posicaoY && bullet[i].foiAtirada) {
+				if (0.0125 + bullet[i].translacaoY >= -0.48 + alien[j].posicaoX && -0.0125 + bullet[i].translacaoY <= -0.02 + alien[j].posicaoX && bullet[i].foiAtirada) {
+					alien[j].atingido = true;
+					atingidos++;
+					contadorPontuacao += 200;
+					alien[j].posicaoX = 50;
+					alien[j].posicaoY = 50;
+					bullet[i].foiAtirada = false;
+					bullet[i].translacaoY = 0.0;
+				}
+			}
+			else {
+				//Continuar
+			}
+		}
+	}
+	
 }
 
 Scene::Scene(int argc, char **argv, string title, int width, int height)
