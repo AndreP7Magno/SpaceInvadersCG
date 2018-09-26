@@ -35,7 +35,7 @@ double contadorPontuacao;
 Bullet bullet[2];
 Alien alien[20];
 Ponto ponto;
-int naveAtingida, i, aux;
+int naveAtingida, i, j, aux;
 double atingidos, troca;
 bool direita = true;
 bool desce = false;
@@ -427,14 +427,14 @@ void DesenhaCena() {
 void Teclas(unsigned char tecla, int x, int y) {
 
 	// Escolhe se reinicia ou sai do jogo.
-	if (telaAtual == 2 || telaAtual == 3) {
-		if (tecla == 90) { //Se apertar Z
+ 	if (telaAtual == 2 || telaAtual == 3) {
+		if (tecla == 122 || tecla == 90) { //Se apertar Z
 			Inicio();
 			telaAtual = 1;
 			naveAtingida = 0;
 			contadorPontuacao = 0;
 		}
-		if (tecla == 88) { //Se apertar X
+		if (tecla == 120 || tecla == 88) { //Se apertar X
 			exit(0);
 		}
 	}
@@ -444,7 +444,7 @@ void Teclas(unsigned char tecla, int x, int y) {
 		for (x = 0; x < 2; x++) {
 			if (bullet[x].foiAtirada == false) {
 				bullet[x].foiAtirada = true;
-				bullet[x].translacaoY = translacaoNaveX;
+				bullet[x].translacaoX = translacaoNaveX;
 				break;
 			}
 
@@ -475,13 +475,12 @@ void Anima(int valor) {
 	}
 
 	//Colisão do alien com bala
-	for (int i = 0; i < 2; i++)
+	for (i = 0; i < 2; i++)
 	{
-		for (int j = 0; j < 20; j++)
+		for (j = 0; j < 20; j++)
 		{
-			if (-0.66 >= 0.38 + alien[j].posicaoY && 0.66 <= 0.7 + alien[j].posicaoY) {
+			if (-0.66 >= 0.38 + alien[j].posicaoY && 0.66 <= 0.7 + alien[j].posicaoY)
 				naveAtingida = 1;
-			}
 
 			if (-0.66 + bullet[i].translacaoY >= 0.38 + alien[j].posicaoY && -0.66 + bullet[i].translacaoY <= 0.7 + alien[j].posicaoY && bullet[i].foiAtirada) {
 				if (0.0125 + bullet[i].translacaoX >= -0.48 + alien[j].posicaoX && -0.0125 + bullet[i].translacaoX <= -0.02 + alien[j].posicaoX && bullet[i].foiAtirada) {
@@ -544,15 +543,18 @@ Scene::Scene(int argc, char **argv, string title, int width, int height)
 	glutInit(&argc, argv);
 	// Indica que deve ser usado um unico buffer para armazenamento da imagem e representacao de cores RGB
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-	glutInitWindowSize(width, height);
+	//glutInitWindowSize(width, height);
 	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - width) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - height) / 2);
 	// Cria uma janela com o titulo especificado
 	glutCreateWindow(title.c_str());
+
 	Inicio();
 	glutSpecialFunc(TeclasDirecionais);
 	glutKeyboardFunc(Teclas);
 	glutDisplayFunc(DesenhaCena);
+
 	glutTimerFunc(50, Anima, 1);
+
 	// Dispara a maquina de estados da OpenGL
 	glutMainLoop();
 }
