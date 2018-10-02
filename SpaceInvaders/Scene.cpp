@@ -6,8 +6,8 @@ struct Bullet
 {
 	bool foiAtirada;
 	bool atingiu;
-	double translacaoX;
-	double translacaoY;
+	float translacaoY;
+	float translacaoX;	
 };
 
 struct Alien
@@ -20,23 +20,26 @@ struct Alien
 
 struct Ponto
 {
-	double pontoX;
-	double pontoY;
+	float pontoX;
+	float pontoY;
 };
 
 #pragma endregion
 
 #pragma region Variáveis Globais
 
-double translacaoNaveX;
-double translacaoX;
-double translacaoY;
-double contadorPontuacao;
+float translacaoNaveX;
+float translacaoX;
+float translacaoY;
+
 Bullet bullet[2];
 Alien alien[20];
 Ponto ponto;
-int naveAtingida, i, j, aux;
-double atingidos, troca;
+
+float contadorPontuacao;
+int naveAtingida, i, j;
+float atingidos, troca;
+
 bool direita = true;
 bool desce = false;
 int telaAtual = 1;
@@ -93,7 +96,7 @@ void DesenhaNave() {
 // Somente desenha o alien
 void DesenhaAlien(Alien alien) {
 	//1 ponta antena esquerda
-	glColor3f(0.5, 1.0, 0.8);
+	glColor3f(0.0, 1.0, 0.6);
 	glBegin(GL_QUADS);
 	glVertex2f(-0.4 + alien.posicaoX, 0.7 + alien.posicaoY);
 	glVertex2f(-0.36 + alien.posicaoX, 0.7 + alien.posicaoY);
@@ -243,54 +246,58 @@ void DesenhaBala(Bullet bullet) {
 void EscrevePontuacaoGeral() {
 	char texto[12] = "Pontuacao: ";
 	char textoPontuacao[20];
+	int k = 0;
 
 	sprintf_s(textoPontuacao, "%.0f", contadorPontuacao);
 
 	glColor3ub(255, 255, 255);
-	glRasterPos3f(0.6, -0.9, 0.0);
+	glRasterPos3f(0.7, -1.0, 0.0);
 
-	for (size_t aux = 0; aux <= strlen(texto); aux++)
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[aux]);
+	for (k = 0; k <= strlen(texto); k++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[k]);
 
-	for (size_t aux = 0; aux <= strlen(textoPontuacao); aux++)
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, textoPontuacao[aux]);
+	for (k = 0; k <= strlen(textoPontuacao); k++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, textoPontuacao[k]);
 }
 
 void EscreveMenuAuxiliar() {
 	char texto[50] = "Aperte Z para Reiniciar ou X para Fechar";
+	int k = 0;
 
 	glColor3ub(255, 255, 255);
 	glRasterPos3f(-2.0, -0.7, 0.0);
 
-	for (size_t aux = 0; aux <= strlen(texto); aux++)
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[aux]);
+	for (k = 0; k <= strlen(texto); k++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[k]);
 }
 
 void EscrevePerdedor() {
 	char texto[11] = "PERDEU";
+	int k = 0;
 
 	glColor3ub(254, 255, 255);
 	glRasterPos3f(-0.5, 1.0, 0.0);
 
-	for (size_t aux = 0; aux <= strlen(texto); aux++)
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[aux]);
+	for (k = 0; k <= strlen(texto); k++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[k]);
 }
 
 void EscreveGanhou() {
 	char texto[8] = "GANHOU";
+	int k = 0;
 
 	glColor3ub(255, 255, 255);
 	glRasterPos3f(-0.5, 1.0, 0.0);
 
-	for (size_t aux = 0; aux <= strlen(texto); aux++)
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[aux]);
+	for (k = 0; k <= strlen(texto); k++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, texto[k]);
 }
 
 #pragma endregion
 
 void Inicio() {
 	contadorPontuacao, atingidos = 0;
-
+	int aux = 0;
 	//Valores iniciais para Balas
 	for (aux = 0; aux < 2; aux++) {
 		bullet[aux].translacaoX = bullet[aux].translacaoY = 0.0;
@@ -319,7 +326,7 @@ void Inicio() {
 			alien[i].atingido = false;
 		}
 
-		if (!alien[i].atingido) {
+		if (alien[i].atingido == false) {
 			if (i == 0) {
 				translacaoX = alien[i].posicaoX;
 				translacaoY = alien[i].posicaoY;
@@ -350,14 +357,14 @@ void DesenhaCena() {
 		PontoColisao(ponto);
 
 		//Desenha Aliens
-		for (int i = 0; i < 20; i++)
+		for (i = 0; i < 20; i++)
 		{
-			if (!alien[i].atingido)
+			if (alien[i].atingido == false)
 				DesenhaAlien(alien[i]);
 		}
 
 		//Movimento do Alien em X
-		for (int i = 0; i < 20; i++)
+		for (i = 0; i < 20; i++)
 		{
 			if (direita)
 				alien[i].posicaoX += 0.1;
@@ -377,7 +384,7 @@ void DesenhaCena() {
 
 		//Movimento do Alien em Y
 		if (desce) {
-			for (int i = 0; i < 20; i++)
+			for (i = 0; i < 20; i++)
 			{
 				alien[i].posicaoY -= 0.1;
 			}
@@ -479,11 +486,12 @@ void Anima(int valor) {
 	{
 		for (j = 0; j < 20; j++)
 		{
-			if (-0.66 >= 0.38 + alien[j].posicaoY && 0.66 <= 0.7 + alien[j].posicaoY)
+			if (-0.66 >= 0.38 + alien[j].posicaoY && -0.66 <= 0.7 + alien[j].posicaoY){
 				naveAtingida = 1;
+			}
 
-			if (-0.66 + bullet[i].translacaoY >= 0.38 + alien[j].posicaoY && -0.66 + bullet[i].translacaoY <= 0.7 + alien[j].posicaoY && bullet[i].foiAtirada) {
-				if (0.0125 + bullet[i].translacaoX >= -0.48 + alien[j].posicaoX && -0.0125 + bullet[i].translacaoX <= -0.02 + alien[j].posicaoX && bullet[i].foiAtirada) {
+			if (-0.66 + bullet[i].translacaoY >= 0.38 + alien[j].posicaoY && -0.66 + bullet[i].translacaoY <= 0.7 + alien[j].posicaoY && bullet[i].foiAtirada == true) {
+				if (-0.0125 + bullet[i].translacaoX >= -0.48 + alien[j].posicaoX && -0.0125 + bullet[i].translacaoX <= -0.02 + alien[j].posicaoX && bullet[i].foiAtirada == true) {
 					alien[j].atingido = true;
 					atingidos++;
 					contadorPontuacao += 100;
@@ -506,8 +514,8 @@ void Anima(int valor) {
 					}
 				}
 				else {
-					if (-0.76 + bullet[i].translacaoY >= 0.38 + alien[j].posicaoY && -0.76 + bullet[i].translacaoY <= 0.7 + alien[j].posicaoX && bullet[i].foiAtirada == true) {
-						if (0.0125 + bullet[i].translacaoX >= -0.48 + alien[j].posicaoX && 0.0125 + bullet[i].translacaoX <= -0.02 + alien[j].posicaoX && bullet[i].foiAtirada == true) {
+					if (-0.76 + bullet[i].translacaoY >= 0.38 + alien[j].posicaoY && -0.76 + bullet[i].translacaoY <= 0.7 + alien[j].posicaoY && bullet[i].foiAtirada == true) {
+						if (-0.0125 + bullet[i].translacaoX >= -0.48 + alien[j].posicaoX && -0.0125 + bullet[i].translacaoX <= -0.02 + alien[j].posicaoX && bullet[i].foiAtirada == true) {
 							alien[j].atingido = true;
 							atingidos++;
 							contadorPontuacao += 100;
@@ -518,7 +526,7 @@ void Anima(int valor) {
 						}
 					}
 					else {
-						if (-0.76 + bullet[i].translacaoY >= 0.38 + alien[j].posicaoY &&-0.76 + bullet[i].translacaoY <= 0.7 + alien[j].posicaoY && bullet[i].foiAtirada == true) {
+						if (-0.76 + bullet[i].translacaoY >= 0.38 + alien[j].posicaoY && -0.76 + bullet[i].translacaoY <= 0.7 + alien[j].posicaoY && bullet[i].foiAtirada == true) {
 							if (0.0125 + bullet[i].translacaoX >= -0.48 + alien[j].posicaoX && 0.0125 + bullet[i].translacaoX <= -0.02 + alien[j].posicaoX && bullet[i].foiAtirada == true) {
 								alien[j].atingido = true;
 								atingidos++;
@@ -534,6 +542,7 @@ void Anima(int valor) {
 			}
 		}
 	}
+
 	glutPostRedisplay();
 	glutTimerFunc(50, Anima, 1);
 }
@@ -543,7 +552,7 @@ Scene::Scene(int argc, char **argv, string title, int width, int height)
 	glutInit(&argc, argv);
 	// Indica que deve ser usado um unico buffer para armazenamento da imagem e representacao de cores RGB
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-	//glutInitWindowSize(width, height);
+	glutInitWindowSize(width, height);
 	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - width) / 2, (glutGet(GLUT_SCREEN_HEIGHT) - height) / 2);
 	// Cria uma janela com o titulo especificado
 	glutCreateWindow(title.c_str());
