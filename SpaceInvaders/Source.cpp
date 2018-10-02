@@ -2,5 +2,5 @@
 
 void main(int argc, char **argv)
 {
-	Scene Scene(argc, argv, "Space Invaders", 450, 400);
+	Scene Scene(argc, argv, "Space Invaders", 400, 400);
 }
