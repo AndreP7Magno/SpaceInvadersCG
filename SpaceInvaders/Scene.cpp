@@ -20,8 +20,8 @@ struct Alien
 
 struct Ponto
 {
-	double pontoX;
-	double pontoY;
+	double pontoXEsq;
+	double pontoXDir;
 };
 
 #pragma endregion
@@ -53,12 +53,12 @@ double velocidadeAlien = 0.1;
 #pragma region Desenhos e Textos
 
 void PontoColisao(Ponto ponto) {
-	glColor3f(0.0, 0.0, 0.0);
+	glColor3f(0.5, 1.0, 0.0);
 	glBegin(GL_QUADS);
-	glVertex2f(-0.48 + ponto.pontoX, 0.7 + 2.0);
-	glVertex2f(-0.48 + ponto.pontoX, 0.38 + 2.0);
-	glVertex2f(-0.02 + ponto.pontoY, 0.38 + 2.0);
-	glVertex2f(-0.02 + ponto.pontoY, 0.7 + 2.0);
+	glVertex2f(-0.48 + ponto.pontoXEsq, 0.7 + 2.0);
+	glVertex2f(-0.48 + ponto.pontoXEsq, 0.38 + 2.0);
+	glVertex2f(-0.02 + ponto.pontoXDir, 0.38 + 2.0);
+	glVertex2f(-0.02 + ponto.pontoXDir, 0.7 + 2.0);
 	glEnd();
 }
 
@@ -342,8 +342,8 @@ void Inicio() {
 			translacaoX += 0.5;
 		}
 	}
-	ponto.pontoX = alien[0].posicaoX;
-	ponto.pontoY = alien[4].posicaoX;
+	ponto.pontoXEsq = alien[0].posicaoX;
+	ponto.pontoXDir = alien[4].posicaoX;
 }
 
 void DesenhaCena() {
@@ -377,13 +377,13 @@ void DesenhaCena() {
 		}
 
 		if (direita) {
-			ponto.pontoX += velocidadeAlien;
-			ponto.pontoY += velocidadeAlien;
+			ponto.pontoXEsq += velocidadeAlien;
+			ponto.pontoXDir += velocidadeAlien;
 		}
 		else
 		{
-			ponto.pontoX -= velocidadeAlien;
-			ponto.pontoY -= velocidadeAlien;
+			ponto.pontoXEsq -= velocidadeAlien;
+			ponto.pontoXDir -= velocidadeAlien;
 		}
 
 		//Movimento do Alien em Y
@@ -487,11 +487,11 @@ void TeclasDirecionais(int tecla, int x, int y) {
 }
 
 void Anima(int valor) {
-	if (ponto.pontoY >= 2.0) {
+	if (ponto.pontoXDir >= 2.0) {
 		direita = false;
 		desce = true;
 	}
-	else if (ponto.pontoX <= -1.54) {
+	else if (ponto.pontoXEsq <= -1.54) {
 		direita = true;
 		desce = true;
 	}
